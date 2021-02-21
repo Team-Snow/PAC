@@ -1,5 +1,6 @@
 use rand::{thread_rng, Rng};
 use sha2::{Digest, Sha256};
+use serde::{Serialize};
 
 const TEST_STRINGS: &'static [&'static str] = &["hack", "frost", "snow", "arena"];
 
@@ -14,14 +15,20 @@ fn string_to_hash() -> Vec<Vec<u8>> {
 }
 
 /// Contains the state of each hash
-/// (Solution, Hash, Served, Completed, Workers)
-/// Todo: Convert tuple to struct
-type HashState = (&'static str, Vec<u8>, usize, usize, Vec<usize>);
+#[derive(Serialize)]
+pub struct HashState {
+    text: &'static str,
+    hash: Vec<u8>,
+    served: usize,
+    completed: usize,
+    nodes: Vec<usize>
+}
 
 /// Defines server state
 ///
 /// Currently the state is locked by the server all operations on this object. Exploring some internal
 /// mutability structures should increase performance, particularly with longer running tasks on the server.
+#[derive(Serialize)]
 pub struct State {
     ids: usize,
     pub nodes: usize,
@@ -38,7 +45,13 @@ impl State {
             nodes: 0,
             hashes: TEST_STRINGS
                 .iter()
-                .map(|v| (*v, drain.next().unwrap(), 0, 0, Vec::new()))
+                .map(|v| HashState {
+                    text: *v,
+                    hash: drain.next().unwrap(),
+                    served: 0,
+                    completed: 0,
+                    nodes: Vec::new()
+                })
                 .collect(),
         }
     }
@@ -54,8 +67,8 @@ impl State {
     /// Disconnects node and frees tasks
     pub fn disconnect(&mut self, id: usize) {
         self.nodes -= 1;
-        for (_, _, _, _, ids) in &mut self.hashes {
-            ids.drain_filter(|tid| *tid == id);
+        for hash in &mut self.hashes {
+            hash.nodes.drain_filter(|tid| *tid == id);
         }
     }
 
@@ -67,30 +80,29 @@ impl State {
 
         // Get random task
         let mut rng = thread_rng();
-        let (string, hash, served, _, nodes) = &mut hashes[rng.gen_range(0..len)];
+        let task = &mut hashes[rng.gen_range(0..len)];
 
         // Assign node to task
-        *served += 1;
-        nodes.push(id);
+        task.served += 1;
+        task.nodes.push(id);
 
-        println!("Sending: {} as {:?}", string, hash);
+        println!("Sending: {} as {:?}", task.text, task.hash);
 
         // Return task
-        hash.clone()
+        task.hash.clone()
     }
 
     /// Checks if a result is correct and removes node from task
     pub fn resolve(&mut self, id: usize, result: String) {
         println!("got result {}", result);
-        let hash = self.hashes.iter_mut().find(|(string, _, _, _, _)| **string == result);
+        let hash = self.hashes.iter_mut().find(|hash| *hash.text == result);
         if let Some(mut hash) = hash {
-            let (_, _, _, completed, ids) = &mut hash;
-            *completed += 1;
-            ids.drain_filter(|tid| *tid == id);
+            hash.completed += 1;
+            hash.nodes.drain_filter(|tid| *tid == id);
         } else {
             // Error validating result
-            for (_, _, _, _, ids) in &mut self.hashes {
-                ids.drain_filter(|tid| *tid == id);
+            for hash in &mut self.hashes {
+                hash.nodes.drain_filter(|tid| *tid == id);
             }
         }
     }

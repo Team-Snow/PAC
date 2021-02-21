@@ -33,22 +33,40 @@ pub fn main() {
             let mut websocket = accept(stream.unwrap()).unwrap();
 
             // Assign ID to node
-            let id: usize = {
-                let mut state = state_ref.lock().unwrap();
-                state.connect()
-            };
+            let mut id: usize = 0;
 
             // Continuously try to read messages from the connection
             loop {
                 let next = websocket.read_message();
                 if let Ok(ref msg) = next {
                     if msg.is_text() {
+                        let msg_text = msg.to_text().unwrap();
+
+                        // Allow browser clients to fetch state
+                        // Todo: Information should be broadcasted instead of polled
+                        if msg.to_text().unwrap() == "fetch" {
+                            let lock = state_ref.lock().unwrap();
+                            let state = serde_json::to_string(&*lock).unwrap();
+                            websocket
+                                .write_message(state.into())
+                                .unwrap();
+                            continue;
+                        }
+
                         // Deserialize message into a PacEvent
-                        let msg: PacEvent = serde_json::from_str(&msg.to_string()).unwrap();
+                        // Todo: Unwrapping incorrect messages should kill the connection more gracefully
+                        let msg: PacEvent = serde_json::from_str(&msg_text).unwrap();
 
                         // Respond to client events
                         match msg.event {
                             EventType::Request => {
+                                // Assign ID to node
+                                if id == 0 {
+                                    id = {
+                                        let mut state = state_ref.lock().unwrap();
+                                        state.connect()
+                                    };
+                                }
                                 let mut state = state_ref.lock().unwrap();
                                 send(&mut websocket, PacEvent::start(state.request(id)))
                             },
