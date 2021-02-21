@@ -1,3 +1,6 @@
+#![feature(drain_filter)]
+
+#[allow(dead_code)]
 mod both;
 mod server;
 
@@ -7,7 +10,7 @@ use std::net::TcpListener;
 use std::sync::{Arc, Mutex};
 use std::thread::spawn;
 use tungstenite::server::accept;
-use tungstenite::Message;
+use tungstenite::WebSocket;
 
 pub fn main() {
     println!("Starting PAC server!");
@@ -29,33 +32,47 @@ pub fn main() {
             // Accept connection
             let mut websocket = accept(stream.unwrap()).unwrap();
 
-            // Increment node count in server state
-            {
-                state_ref.lock().unwrap().nodes += 1;
-            }
+            // Assign ID to node
+            let id: usize = {
+                let mut state = state_ref.lock().unwrap();
+                state.connect()
+            };
 
             // Continuously try to read messages from the connection
             loop {
                 let next = websocket.read_message();
-                if let (Ok(ref msg)) = next {
+                if let Ok(ref msg) = next {
                     if msg.is_text() {
                         // Deserialize message into a PacEvent
-                        let event: PacEvent = serde_json::from_str(&msg.to_string()).unwrap();
+                        let msg: PacEvent = serde_json::from_str(&msg.to_string()).unwrap();
 
-                        websocket
-                            .write_message(
-                                serde_json::to_string(&PacEvent::start()).unwrap().into(),
-                            )
-                            .unwrap();
+                        // Respond to client events
+                        match msg.event {
+                            EventType::Request => {
+                                let mut state = state_ref.lock().unwrap();
+                                send(&mut websocket, PacEvent::start(state.request(id)))
+                            }
+
+                            _ => {}
+                        }
                     }
                 }
 
                 // Errors will be primarily triggered by a ConnectionClose error so we will break the loop and join the thread
-                if let (Err(e)) = next {
-                    state_ref.lock().unwrap().nodes -= 1;
+                if let Err(_) = next {
+                    state_ref.lock().unwrap().disconnect(id);
                     break;
                 }
             }
         });
     }
+}
+
+fn send<T>(socket: &mut WebSocket<T>, msg: PacEvent)
+where
+    T: std::io::Read + std::io::Write,
+{
+    socket
+        .write_message(serde_json::to_string(&msg).unwrap().into())
+        .unwrap();
 }

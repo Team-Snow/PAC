@@ -1,15 +1,17 @@
+#[allow(dead_code)]
 mod both;
+#[allow(dead_code)]
 mod pack;
 
 #[cfg(not(feature = "server"))]
 use {
     crate::both::*,
+    crate::pack::Pack,
     serde_json::{json, Value},
     wasm_bindgen::prelude::*,
     wasm_bindgen::JsCast,
     web_sys::{MessageEvent, WebSocket},
 };
-use crate::pack::Pack;
 
 // When the `wee_alloc` feature is enabled, use `wee_alloc` as the global
 // allocator.
@@ -53,8 +55,8 @@ pub fn initialize() {
         if let Ok(msg) = deserialize {
             // For now executing log running tasks in a proper threaded way is not possible so we will run tasks in sync
             match msg.event {
-                EventType::Start => {
-                    pack.start();
+                EventType::Start(hash) => {
+                    pack.start(hash);
                 }
                 EventType::Stop => {
                     // Todo: Stop websocket

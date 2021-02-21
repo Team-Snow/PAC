@@ -12,18 +12,23 @@ impl PacEvent {
         }
     }
 
-    pub fn start() -> Self {
+    pub fn start(hash: Vec<u8>) -> Self {
         Self {
-            event: EventType::Start,
+            event: EventType::Start(hash),
+        }
+    }
+
+    pub fn resolved(string: String) -> Self {
+        Self {
+            event: EventType::Resolved(string),
         }
     }
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 pub enum EventType {
-    Start,
+    Start(Vec<u8>),
     Stop,
-    Update,
-    Resolved,
+    Resolved(String),
     Request,
 }
