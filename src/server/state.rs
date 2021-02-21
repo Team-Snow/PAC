@@ -2,7 +2,7 @@ use rand::{thread_rng, Rng};
 use sha2::{Digest, Sha256};
 use serde::{Serialize};
 
-const TEST_STRINGS: &'static [&'static str] = &["hack", "frost", "snow", "arena"];
+const TEST_STRINGS: &'static [&'static str] = &["hack", "frost", "snow", "arena", "slack"];
 
 fn string_to_hash() -> Vec<Vec<u8>> {
     let mut hashes = Vec::new();
