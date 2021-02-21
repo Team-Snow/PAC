@@ -79,7 +79,7 @@ pub fn main() {
                     }
                 }
 
-                // Errors will be primarily triggered by a ConnectionClose error so we will break the loop and join the thread
+                // Errors will be primarily triggered by a ConnectionClose error so we will break the loop and drop the thread
                 if let Err(_) = next {
                     if id != 0 {
                         state_ref.lock().unwrap().disconnect(id);
