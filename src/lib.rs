@@ -9,6 +9,7 @@ use {
     wasm_bindgen::JsCast,
     web_sys::{MessageEvent, WebSocket},
 };
+use crate::pack::Pack;
 
 // When the `wee_alloc` feature is enabled, use `wee_alloc` as the global
 // allocator.
@@ -17,7 +18,7 @@ use {
 #[global_allocator]
 static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 
-// Contains the public location of the PAC websocket server
+/// Location of the PAC websocket server
 #[cfg(not(feature = "server"))]
 static PAC_SERVER: &'static str = env!("PAC_SERVER");
 
@@ -28,12 +29,20 @@ extern "C" {
     fn log(s: &str);
 }
 
+/// PAC entrypoint
+///
+/// Called when the WASM module is loaded via a web worker. Threading and gpu acceleration are currently limited in WASM
+/// therefore the current setup is strictly a synchronous example. Development of these modules can be followed on the
+/// [threads repository](https://github.com/WebAssembly/threads/blob/master/proposals/threads/Overview.md) and [gpuweb repository](https://github.com/gpuweb/gpuweb/wiki/Implementation-Status).
 #[cfg(not(feature = "server"))]
 #[wasm_bindgen]
 pub fn initialize() {
     // Initialize connection to PAC server
     let ws = WebSocket::new(PAC_SERVER).expect("Error initializing websocket!");
     ws.set_binary_type(web_sys::BinaryType::Arraybuffer);
+
+    // Initialize local PAC state
+    let pack = Pack::new();
 
     // Bind websocket onmessage callback to PAC events
     let onmessage_callback = Closure::wrap(Box::new(move |event: MessageEvent| {
@@ -45,7 +54,7 @@ pub fn initialize() {
             // For now executing log running tasks in a proper threaded way is not possible so we will run tasks in sync
             match msg.event {
                 EventType::Start => {
-                    log("Starting compute.");
+                    pack.start();
                 }
                 EventType::Stop => {
                     // Todo: Stop websocket
