@@ -42,12 +42,12 @@ pub fn shift(vec: &mut Vec<u8>) {
         match item {
             b'z' => {
                 *item -= b'z' - b'a';
-            },
+            }
             _ => {
                 *item += 1;
                 first_z = false;
                 break;
-            },
+            }
         }
     }
 

@@ -47,9 +47,7 @@ pub fn main() {
                         if msg.to_text().unwrap() == "fetch" {
                             let lock = state_ref.lock().unwrap();
                             let state = serde_json::to_string(&*lock).unwrap();
-                            websocket
-                                .write_message(state.into())
-                                .unwrap();
+                            websocket.write_message(state.into()).unwrap();
                             continue;
                         }
 
@@ -69,11 +67,11 @@ pub fn main() {
                                 }
                                 let mut state = state_ref.lock().unwrap();
                                 send(&mut websocket, PacEvent::start(state.request(id)))
-                            },
+                            }
                             EventType::Resolved(result) => {
                                 let mut state = state_ref.lock().unwrap();
                                 state.resolve(id, result);
-                            },
+                            }
                             _ => {}
                         }
                     }

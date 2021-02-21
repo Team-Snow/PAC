@@ -58,12 +58,19 @@ pub fn initialize() {
             match msg.event {
                 EventType::Start(hash) => {
                     if let Some(result) = pack.start(hash) {
-                        cloned_ws.send_with_str(&serde_json::to_string::<PacEvent>(&PacEvent::resolved(result)).unwrap());
-                        cloned_ws.send_with_str(&serde_json::to_string::<PacEvent>(&PacEvent::request()).unwrap());
+                        cloned_ws.send_with_str(
+                            &serde_json::to_string::<PacEvent>(&PacEvent::resolved(result))
+                                .unwrap(),
+                        );
+                        cloned_ws.send_with_str(
+                            &serde_json::to_string::<PacEvent>(&PacEvent::request()).unwrap(),
+                        );
                     } else {
-                        cloned_ws.send_with_str(&serde_json::to_string::<PacEvent>(&PacEvent::request()).unwrap());
+                        cloned_ws.send_with_str(
+                            &serde_json::to_string::<PacEvent>(&PacEvent::request()).unwrap(),
+                        );
                     }
-                },
+                }
                 EventType::Stop => {
                     // Todo: Stop websocket
                 }

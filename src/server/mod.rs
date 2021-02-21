@@ -1,6 +1,6 @@
 use rand::{thread_rng, Rng};
+use serde::Serialize;
 use sha2::{Digest, Sha256};
-use serde::{Serialize};
 
 const TEST_STRINGS: &'static [&'static str] = &["hack", "frost", "snow", "arena", "slack"];
 
@@ -22,7 +22,7 @@ pub struct HashState {
     hash: Vec<u8>,
     served: usize,
     completed: usize,
-    nodes: Vec<usize>
+    nodes: Vec<usize>,
 }
 
 /// Defines server state
@@ -51,7 +51,7 @@ impl State {
                     hash: drain.next().unwrap(),
                     served: 0,
                     completed: 0,
-                    nodes: Vec::new()
+                    nodes: Vec::new(),
                 })
                 .collect(),
         }
@@ -87,7 +87,10 @@ impl State {
         task.served += 1;
         task.nodes.push(id);
 
-        println!("Sending \"{}\" to node {} as {:?}", task.text, id, task.hash);
+        println!(
+            "Sending \"{}\" to node {} as {:?}",
+            task.text, id, task.hash
+        );
 
         // Return task
         task.hash.clone()
