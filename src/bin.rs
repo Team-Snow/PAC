@@ -51,8 +51,11 @@ pub fn main() {
                             EventType::Request => {
                                 let mut state = state_ref.lock().unwrap();
                                 send(&mut websocket, PacEvent::start(state.request(id)))
-                            }
-
+                            },
+                            EventType::Resolved(result) => {
+                                let mut state = state_ref.lock().unwrap();
+                                state.resolve(id, result);
+                            },
                             _ => {}
                         }
                     }

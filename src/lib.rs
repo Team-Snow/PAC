@@ -47,6 +47,7 @@ pub fn initialize() {
     let pack = Pack::new();
 
     // Bind websocket onmessage callback to PAC events
+    let cloned_ws = ws.clone();
     let onmessage_callback = Closure::wrap(Box::new(move |event: MessageEvent| {
         // Try to deserialize message into a PacEvent
         let deserialize: Result<PacEvent, _> =
@@ -56,8 +57,13 @@ pub fn initialize() {
             // For now executing log running tasks in a proper threaded way is not possible so we will run tasks in sync
             match msg.event {
                 EventType::Start(hash) => {
-                    pack.start(hash);
-                }
+                    if let Some(result) = pack.start(hash) {
+                        cloned_ws.send_with_str(&serde_json::to_string::<PacEvent>(&PacEvent::resolved(result)).unwrap());
+                        cloned_ws.send_with_str(&serde_json::to_string::<PacEvent>(&PacEvent::request()).unwrap());
+                    } else {
+                        cloned_ws.send_with_str(&serde_json::to_string::<PacEvent>(&PacEvent::request()).unwrap());
+                    }
+                },
                 EventType::Stop => {
                     // Todo: Stop websocket
                 }
