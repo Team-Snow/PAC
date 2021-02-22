@@ -11,12 +11,23 @@ use std::sync::{Arc, Mutex};
 use std::thread::spawn;
 use tungstenite::server::accept;
 use tungstenite::WebSocket;
+use std::fs::File;
+use std::io::{Read};
+use native_tls::{Identity, TlsAcceptor, TlsStream};
 
 pub fn main() {
     println!("Starting PAC server!");
 
+    // Load TLS certificate
+    let mut file = File::open(env!("TLS_CERT")).unwrap();
+    let mut identity = vec![];
+    file.read_to_end(&mut identity).unwrap();
+    let identity = Identity::from_pkcs12(&identity, env!("TLS_PASSWORD")).unwrap();
+    let acceptor = TlsAcceptor::new(identity).unwrap();
+    let acceptor = Arc::new(acceptor);
+
     // Start server on localhost
-    let server = TcpListener::bind("127.0.0.1:8080").unwrap();
+    let server = TcpListener::bind("0.0.0.0:8080").unwrap();
 
     // Initialize server state
     let state = Arc::new(Mutex::new(State::new()));
@@ -25,12 +36,14 @@ pub fn main() {
     for stream in server.incoming() {
         // Clone state to move into thread
         let state_ref = state.clone();
+        let acceptor = acceptor.clone();
 
         // Spawn a thread for each connection
         // Todo: Connections should be moved to a async thread pool instead of using system threads
         spawn(move || {
             // Accept connection
-            let mut websocket = accept(stream.unwrap()).unwrap();
+            let stream = acceptor.accept(stream.unwrap()).unwrap();
+            let mut websocket = accept(stream).unwrap();
 
             // Assign ID to node
             let mut id: usize = 0;
