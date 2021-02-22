@@ -2,7 +2,9 @@ use rand::{thread_rng, Rng};
 use serde::Serialize;
 use sha2::{Digest, Sha256};
 
-const TEST_STRINGS: &'static [&'static str] = &["hack", "frost", "snow", "arena", "slack", "rust", "wasm", "pop"];
+const TEST_STRINGS: &'static [&'static str] = &[
+    "hack", "frost", "snow", "arena", "slack", "rust", "wasm", "pop",
+];
 
 /// Converts test strings into sha256
 fn string_to_hash() -> Vec<Vec<u8>> {
@@ -27,8 +29,8 @@ pub struct HashState {
 
 /// Defines server state
 ///
-/// Currently the state is locked by the server all operations on this object. Exploring some internal
-/// mutability structures should increase performance, particularly with longer running tasks on the server.
+/// Todo: Currently the state is locked by the server during all operations on this object.
+///     Exploring some internal mutability structures should increase performance, particularly with longer running tasks on the server.
 #[derive(Serialize)]
 pub struct State {
     ids: usize,

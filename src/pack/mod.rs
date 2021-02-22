@@ -27,7 +27,11 @@ impl Pack {
             let result_vec = result.to_vec();
             if result_vec == hash {
                 let result = String::from_utf8(start).unwrap();
-                log(&format!("Solved! sha256({}) = {}", result, u8_to_string(&result_vec)));
+                log(&format!(
+                    "Solved! sha256({}) = {}",
+                    result,
+                    u8_to_string(&result_vec)
+                ));
                 return Some(result);
             }
             shift(&mut start);
@@ -37,6 +41,7 @@ impl Pack {
     }
 }
 
+/// Converts a u8 vector into a nice hex string
 fn u8_to_string(vec: &Vec<u8>) -> String {
     let mut string = String::new();
     for byte in vec {

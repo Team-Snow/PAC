@@ -4,16 +4,16 @@
 mod both;
 mod server;
 
-use crate::both::*;
-use crate::server::State;
-use std::net::TcpListener;
-use std::sync::{Arc, Mutex};
-use std::thread::spawn;
-use tungstenite::server::accept;
-use tungstenite::WebSocket;
-use std::fs::File;
-use std::io::{Read};
-use native_tls::{Identity, TlsAcceptor, TlsStream};
+use crate::{both::*, server::State};
+use native_tls::{Identity, TlsAcceptor};
+use std::{
+    fs::File,
+    io::Read,
+    net::TcpListener,
+    sync::{Arc, Mutex},
+    thread::spawn,
+};
+use tungstenite::{server::accept, WebSocket};
 
 pub fn main() {
     println!("Starting PAC server!");

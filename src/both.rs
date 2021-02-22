@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 
+/// Represents the data to be passed over WebSockets
 #[derive(Serialize, Deserialize, Debug)]
 pub struct PacEvent {
     pub event: EventType,

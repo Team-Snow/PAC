@@ -3,13 +3,12 @@ mod both;
 #[allow(dead_code)]
 mod pack;
 
+// Todo: There's probably a better way to disable lib compilation other than feature gating everything
 #[cfg(not(feature = "server"))]
 use {
-    crate::both::*,
-    crate::pack::Pack,
+    crate::{both::*, pack::Pack},
     serde_json::{json, Value},
-    wasm_bindgen::prelude::*,
-    wasm_bindgen::JsCast,
+    wasm_bindgen::{prelude::*, JsCast},
     web_sys::{MessageEvent, WebSocket},
 };
 
