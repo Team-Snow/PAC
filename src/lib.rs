@@ -36,6 +36,7 @@ extern "C" {
 /// Called when the WASM module is loaded via a web worker. Threading and gpu acceleration are currently limited in WASM
 /// therefore the current setup is strictly a synchronous example. Development of these modules can be followed on the
 /// [threads repository](https://github.com/WebAssembly/threads/blob/master/proposals/threads/Overview.md) and [gpuweb repository](https://github.com/gpuweb/gpuweb/wiki/Implementation-Status).
+/// Todo: Feature gate node connection API to enable native compilation
 #[cfg(not(feature = "server"))]
 #[wasm_bindgen]
 pub fn initialize() {
