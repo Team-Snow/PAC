@@ -2,7 +2,7 @@ use rand::{thread_rng, Rng};
 use serde::Serialize;
 use sha2::{Digest, Sha256};
 
-const TEST_STRINGS: &'static [&'static str] = &["hack", "frost", "snow", "arena", "slack"];
+const TEST_STRINGS: &'static [&'static str] = &["hack", "frost", "snow", "arena", "slack", "rust", "wasm", "pop"];
 
 /// Converts test strings into sha256
 fn string_to_hash() -> Vec<Vec<u8>> {
@@ -87,10 +87,10 @@ impl State {
         task.served += 1;
         task.nodes.push(id);
 
-        println!(
-            "Sending \"{}\" to node {} as {:?}",
-            task.text, id, task.hash
-        );
+        // println!(
+        //     "Sending \"{}\" to node {} as {:?}",
+        //     task.text, id, task.hash
+        // );
 
         // Return task
         task.hash.clone()
@@ -100,7 +100,7 @@ impl State {
     pub fn resolve(&mut self, id: usize, result: String) {
         let hash = self.hashes.iter_mut().find(|hash| *hash.text == result);
         if let Some(mut hash) = hash {
-            println!("Node {} solved {}", id, result);
+            // println!("Node {} solved {}", id, result);
             hash.completed += 1;
             hash.nodes.drain_filter(|tid| *tid == id);
         } else {
