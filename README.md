@@ -12,3 +12,5 @@ support and distribution.
 ## Demo
 
 A live demo for the simple brute force hash solver can be viewed at https://hack.snowing.dev/
+
+Copyright 2021 Morgan Fudge, Jack Pilley
